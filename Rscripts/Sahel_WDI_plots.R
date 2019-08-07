@@ -31,7 +31,7 @@ scaleFUN <- function(x) sprintf("%.2f", x)
 
 
 
-econ <- read_csv(file.path(datapath, "Sahel_econgrowthpc.csv"), skip = 4)%>% 
+econ <- read_csv(file.path(datapath, "Sahel_econgrowthpc.csv"), skip = 4) %>% 
   gather(year, econ_growth, `1960`:`2018`) %>% 
   mutate(year = return_year(year)) %>% 
   arrange(`Country Name`, year)
@@ -77,7 +77,7 @@ pop_growth <-
   
 debt_service <- 
   line_plots(debt, year, debt) +
-  labs(title = "Total Debt Services")+
+  labs(title = "Total Debt Services") +
   plot_specs
 
 plot_list <- list(econ_growth, pop_growth, debt_service)
