@@ -20,18 +20,22 @@ sahel <- c("Niger", "Mauritania", "Mali", "Burkina Faso", "Chad")
 
 conflict <- 
   acled %>% 
-  group_by(country, event_type, year, admin3) %>%
-  summarise(event_count = n()) %>% 
-  mutate(Sahel_flag = ifelse(country %in% sahel, 1, 0))
+  mutate(Sahel_flag = ifelse(country %in% sahel, 1, 0),
+         year_filter = case_when(
+           year < 2010 ~ "pre-2010",
+           year >= 2010 ~ "2010-present"
+         ))
 
 
+write_csv(conflict, file.path(dataout, "ACLED_conflict_Africa.csv"))
+write_csv(conflict %>% filter(Sahel_flag == 1), file.path(dataout, "ACLED_conflict_Sahel.csv"))
 
+conflict %>% 
+  group_by(year, country, event_type) %>% 
+  summarise(count = n()) %>% 
+  spread(year, count)
 
 
 
   
 
-mutate(country = fct_reorder(country, event_count)) %>% 
-  ggplot(aes(x = year, y = event_count, colour = country)) +
-  geom_line() + 
-  facet_wrap(~event_type, scales = "free_y") + theme_minimal()

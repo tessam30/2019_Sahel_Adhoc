@@ -1,7 +1,7 @@
 # Set up the repo
 
 # Load packages, prep folders and paths -----------------------------------
-pacman::p_load("tidyverse", "sf", "readxl")
+pacman::p_load("tidyverse", "sf", "readxl", "llamar", "lubridate", "hrbrthemes")
 
 dir.create("Data")
 dir.create("Articles")
