@@ -17,7 +17,7 @@ plot_specs <- list(scale_y_continuous(labels = scales::percent_format(accuracy =
 # simple function to return the year from the string version of date
 return_year <- function(x) {
   as.Date(x, "%Y") %>% lubridate::year()
-}
+ }
 
 caption <- c("Source: World Development Indicators")
 
@@ -63,11 +63,13 @@ line_plots <- function(df, x, y) {
 }
 
 
+# store plots -------------------------------------------------------------
+
+
 econ_growth <- 
   line_plots(econ, year, econ_growth) +
   labs(title = "Economic Growth") +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1))
-
 
 pop_growth <- 
   line_plots(pop, year, pop_growth) +
@@ -79,6 +81,11 @@ debt_service <-
   line_plots(debt, year, debt) +
   labs(title = "Total Debt Services") +
   plot_specs
+
+
+
+# export plots ------------------------------------------------------------
+
 
 plot_list <- list(econ_growth, pop_growth, debt_service)
 
@@ -92,69 +99,39 @@ for (i in 1:length(plot_list)) {
 }
 
 
-# Read in coup data -------------------------------------------------------
-# From: https://www.jonathanmpowell.com/coup-detat-dataset.html
 
-# Create an blank row for 1965 for each country
-pre_coup <- tibble::tribble(
-                    ~country, ~ccode, ~year, ~month, ~day, ~coup,
-              "Burkina Faso",    439,  1965,      1,    1,    NA,
-                      "Mali",    432,  1965,      1,    1,    NA,
-                     "Niger",    436,  1965,      1,    1,    NA,
-                      "Chad",    483,  1965,      1,    1,    NA,
-                "Mauritania",    435,  1965,      1,    1,    NA,
-              "Burkina Faso",    439,  2020,      1,    1,    NA,
-                      "Mali",    432,  2020,      1,    1,    NA,
-                     "Niger",    436,  2020,      1,    1,    NA,
-                      "Chad",    483,  2020,      1,    1,    NA,
-                "Mauritania",    435,  2020,      1,    1,    NA,
-              "Burkina Faso",    439,  2016,     10,    8,     1
-              )
+# Experimenting with coups and growth -------------------------------------
 
 
-coup_url <- c("http://www.uky.edu/~clthyn2/coup_data/powell_thyne_coups_final.txt")
-coups <- read_tsv(url(coup_url)) %>% 
-  filter(country %in% c("Burkina Faso", "Chad", "Mali", "Mauritania", "Niger")) %>%
-  bind_rows(., pre_coup) %>% 
-  complete(country, year = full_seq(year, 1)) %>% 
-  mutate(coup_success = ifelse(is.na(coup), 0, coup),
-         coup_success = ifelse(country == "Niger" & year %in% c(1976, 1983), 0, coup_success))
-
-coups %>% 
-  ggplot(aes(x = year, y = country, fill = factor(coup_success))) +
-  geom_tile(colour = "white", size = 0.25) +
-  scale_fill_manual(values = c(grey10K, "#f0c6c3","#d46780"),
-                    labels = c("No Coup Attemp", "Unsuccessful Coup", "Successful Coup"),
-                    name = "") +
-  scale_x_continuous(breaks = seq(1965, 2015, 5), limits = c(1964, 2020)) +
-  theme_xygrid() +
-  theme(legend.position = "top",
-        panel.grid.major.x = element_blank(),
-        plot.margin = margin(0, -5, 0, 0),
-        panel.grid.major.y = element_blank(),
-        axis.ticks.x = element_line(),
-        # Moving the country titles closer to graph, not sure this is the best approach
-        axis.text.y.left = element_text(margin = margin(r = -20)),
-        text = element_text(size = 14,  family = "Lato"), 
-        plot.title = element_text(size = 14, family = "Lato", colour = grey60K),
-        plot.caption = element_text(size = 10, family = "Lato", colour = grey60K,
-                                    hjust = 0.9)) +
-  coord_fixed(ratio = 1) +
+# Area plot
+econ %>% 
+  rename(country = `Country Name`) %>% 
+  left_join(coups_subset) %>% 
+  mutate(coup_year = 
+         y_max = ifelse(econ_growth > 0, econ_growth, 0),
+         y_min = ifelse(econ_growth < 0, econ_growth, 0),
+         pos_growth = ifelse(econ_growth > 0, "positive", "negative")) %>% 
+  ggplot() +
+  geom_vline(xintercept = lubridate::year(year_date))+
+  geom_col(aes(x = year, y = econ_growth / 100, fill = pos_growth)) +
+  facet_wrap(~ country, nrow = 5) 
++
+  scale_fill_manual(values = c("#EDBB8A", "#B4C8A8")) +
+  theme_line +
+  theme(legend.position = "top") +
   labs(x = "", y = "",
-       title = "Political instability in the Sahel",
-       caption = "Source: https://www.jonathanmpowell.com/coup-detat-dataset.html") 
+       fill = "Direction of economic growth") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) 
 
 
-  ggsave(file.path(imagepath, "Sahel_coup_history.png"),
-         plot = last_plot(),
-         width = 11,
-         height = 6.25,
-         units = c("in"),
-         device = "png",
-         dpi = "retina")
+# Set a coup lag to get line to show
+coups$year_date <- lubridate::ymd(sprintf("%d-01-01", coups$year))
 
-  
-
+coups_subset %>% 
+  ggplot(aes(x = year_date, y = coup_success, group = country)) +
+  theme_line + geom_col() +
+  facet_wrap(~country, nrow = 5) +
+  scale_x_date(breaks = "10 years") 
 
   
 
