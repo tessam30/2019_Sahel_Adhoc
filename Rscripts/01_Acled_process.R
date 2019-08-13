@@ -5,6 +5,8 @@
 
 
 # Set up colors -----------------------------------------------------------
+library(ggmap)
+
 
 preview_colors <- function(x = "BurgYl", y = 30) {
   # x is the color scheme from carto db
@@ -213,5 +215,19 @@ ghana_acled <-
 
 ghana_acled %>% 
   ggplot(aes(x = longitude, y = latitude, colour = event_type, group = country)) + geom_point() +
+  facet_wrap(~event_type)
+
+world <- map_data("world")
+
+# Map with poloygons - Cost
+ggplot() +
+  geom_polygon(data = world,  aes(long, lat, group = group), 
+               fill = "#bababa", colour = "#FFFFFF", size = 0.1) +
+  geom_point(data = ghana_acled, aes(longitude, latitude, colour = event_type, group = country),
+             size = 1, alpha = 0.7)  +
+  coord_map("gilbert", xlim = c(-10, 10),
+            ylim = c(0, 15)) +
+  theme(legend.position = "none") +
+  scale_colour_carto_d(palette = "Vivid") +
   facet_wrap(~event_type)
  
