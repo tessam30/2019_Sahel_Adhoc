@@ -50,7 +50,15 @@ acled %>%
   arrange(desc(n)) %>% 
   print(n = Inf)
 
-sahel <- c("Niger", "Mauritania", "Mali", "Burkina Faso", "Chad")
+sahel <- c("Niger", "Mauritania", "Mali", "Burkina Faso", "Chad", "Sudan", "Eritrea", "South Sudan",
+           "Senegal", "Nigeria")
+
+sub_event_filter <- c("Armed clash", "Attack", "Violent demonstration",
+                      "Mob violence", "Remote explosive/landmine/IED",
+                      "ir/drone strike",
+                      "Shelling/artillery/missile attack",
+                      "Grenade", "Non-state actor overtakes territory",
+                      "Suicide bomb", "Chemical weapon")
 
 conflict <- 
   acled %>% 
@@ -59,8 +67,9 @@ conflict <-
            year < 2010 ~ "pre-2010",
            year >= 2010 ~ "2010-present"
          ),
-         time_variable = lubridate::dmy(event_date))
-
+         time_variable = lubridate::dmy(event_date),
+         event_filter = ifelse(sub_event_type %in% sub_event_filter, 1, 0)) %>% 
+  filter(event_filter == 1)
 
 write_csv(conflict, file.path(dataout, "ACLED_conflict_Africa.csv"))
 write_csv(conflict %>% filter(Sahel_flag == 1), file.path(dataout, "ACLED_conflict_Sahel.csv"))
@@ -135,6 +144,8 @@ ggsave(filename = file.path(imagepath, "ACLED_Sahel_Time_Series.png"),
 # From: https://www.jonathanmpowell.com/coup-detat-dataset.html
 
 # Create an blank row for 1965 for each country
+# This can also be used to add in countries not in the coup database, but in ACLED
+# Can enter this by hand/copy paste in Excel and then use R-studio Addins (datapasta) to paste as tibble
 pre_coup <- tibble::tribble(
   ~country, ~ccode, ~year, ~month, ~day, ~coup,
   "Burkina Faso",    439,  1965,      1,    1,    NA,
@@ -147,21 +158,23 @@ pre_coup <- tibble::tribble(
   "Niger",    436,  2020,      1,    1,    NA,
   "Chad",    483,  2020,      1,    1,    NA,
   "Mauritania",    435,  2020,      1,    1,    NA,
-  "Burkina Faso",    439,  2016,     10,    8,     1
+  "Burkina Faso",    439,  2016,     10,    8,     1,
+  "Senegal", 433, 1965, 1, 1, NA,
+  "Sudan",  625, 1965, 1, 1, NA,
+  "Nigeria", 475, 1965, 1, 1, NA,
+  "Eritrea", NA, 1965, 1, 1, NA,
+  "South Sudan", NA, 1965, 1, 1, NA
 )
 
 
 coup_url <- c("http://www.uky.edu/~clthyn2/coup_data/powell_thyne_coups_final.txt")
 coups <- read_tsv(url(coup_url)) %>% 
-  filter(country %in% c("Burkina Faso", "Chad", "Mali", "Mauritania", "Niger")) %>%
+  filter(country %in% c("Burkina Faso", "Chad", "Mali", "Mauritania", "Niger",
+                        "Senegal", "Sudan", "Nigeria")) %>%
   bind_rows(., pre_coup) %>% 
   complete(country, year = full_seq(year, 1)) %>% 
   mutate(coup_success = ifelse(is.na(coup), 0, coup),
          coup_success = ifelse(country == "Niger" & year %in% c(1976, 1983), 0, coup_success))
-
-
-
-
 
 coup_plot <- 
 coups %>% 
@@ -191,12 +204,12 @@ coups %>%
 instability <- ggarrange(coup_plot, conflict_plot, nrow = 2,
           align = "v")
 
-ggsave(file.path(imagepath, "Sahel_instability_history.pdf"),
+ggsave(file.path(imagepath, "Sahel_instability_history.png"),
        plot = instability,
-       width = 11,
-       height = 8,
+       width = 16,
+       height = 9,
        units = c("in"),
-       device = "pdf",
+       device = "png",
        dpi = "retina")
 
 
