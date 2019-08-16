@@ -112,10 +112,9 @@ econ %>%
          y_min = ifelse(econ_growth < 0, econ_growth, 0),
          pos_growth = ifelse(econ_growth > 0, "positive", "negative")) %>% 
   ggplot() +
-  geom_vline(xintercept = lubridate::year(year_date))+
+  geom_vline(xintercept = lubridate::year(year_date)) +
   geom_col(aes(x = year, y = econ_growth / 100, fill = pos_growth)) +
-  facet_wrap(~ country, nrow = 5) 
-+
+  facet_wrap(~ country, nrow = 5) +
   scale_fill_manual(values = c("#EDBB8A", "#B4C8A8")) +
   theme_line +
   theme(legend.position = "top") +
@@ -123,15 +122,6 @@ econ %>%
        fill = "Direction of economic growth") +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) 
 
-
-# Set a coup lag to get line to show
-coups$year_date <- lubridate::ymd(sprintf("%d-01-01", coups$year))
-
-coups_subset %>% 
-  ggplot(aes(x = year_date, y = coup_success, group = country)) +
-  theme_line + geom_col() +
-  facet_wrap(~country, nrow = 5) +
-  scale_x_date(breaks = "10 years") 
 
   
 

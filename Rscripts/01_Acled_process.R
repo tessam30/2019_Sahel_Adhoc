@@ -18,6 +18,13 @@ preview_colors <- function(x = "BurgYl", y = 30) {
   return(nc)
 }
 
+# Add in theme line
+theme_line <- theme_xygrid(projector = FALSE) +
+  theme(legend.position = "none",
+        strip.text = element_text(hjust = 0, size = 12)) 
+
+country_colors <- c("#88ccee", "#d17c78", "#94aa5b", "#a25899", "#44aa99")
+
 # Cannot get enough color perception in the lower in ends, using viridis
 preview_colors("SunsetDark", 30)
 
@@ -120,16 +127,16 @@ ggsave(file.path(imagepath, "Sahel_Acled_events_1997_2019.png"),
 
 # OR what does a timeseries plot look like?
 
-acled_ts <- 
-  conflict2 %>% 
-  ggplot(aes(x = year, y = count, group = country, color = country)) +
-  geom_line() + 
-  facet_wrap(~country, nrow = 5, scales = "free_y") + 
-  theme_line +
-  scale_color_manual(values = country_colors) +
-  scale_x_continuous(breaks = seq(1997, 2022, 5)) +
-  labs(x = "", y = "", caption = acled_caption,
-       title = "Armed Conflict Events Across the Sahel")
+# acled_ts <- 
+#   conflict2 %>% 
+#   ggplot(aes(x = year, y = count, group = country, color = country)) +
+#   geom_line() + 
+#   facet_wrap(~country, nrow = 5, scales = "free_y") + 
+#   theme_line +
+#   scale_color_manual(values = country_colors) +
+#   scale_x_continuous(breaks = seq(1997, 2022, 5)) +
+#   labs(x = "", y = "", caption = acled_caption,
+#        title = "Armed Conflict Events Across the Sahel")
 
 ggsave(filename = file.path(imagepath, "ACLED_Sahel_Time_Series.png"), 
        plot = acled_ts,
