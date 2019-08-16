@@ -204,13 +204,14 @@ coups %>%
 instability <- ggarrange(coup_plot, conflict_plot, nrow = 2,
           align = "v")
 
-ggsave(file.path(imagepath, "Sahel_instability_history.png"),
+ggsave(file.path(imagepath, "Sahel_instability_history.pdf"),
        plot = instability,
        width = 16,
        height = 9,
        units = c("in"),
-       device = "png",
-       dpi = "retina")
+       device = "pdf",
+       dpi = "retina",
+       useDingbats = FALSE)
 
 
 # Acled data processing for Ghana -----------------------------------------
